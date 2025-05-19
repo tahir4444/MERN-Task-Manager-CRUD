@@ -1,43 +1,79 @@
-# Todo App with React.js, Vite, and MySQL
+# MERN Task Manager
 
-A full-stack todo application with authentication built with React.js (Vite), Express.js, and MySQL.
+A simple full-stack CRUD application using MongoDB, Express, React, and Node.js (MERN stack). It allows users to manage tasks with basic Create, Read, Update, and Delete (CRUD) functionality.
 
-## Features
+## 🛠 Tech Stack
 
-- User registration and login
-- JWT authentication
-- Create, read, update, and delete todos
-- Mark todos as complete/incomplete
-- Form validation on both client and server
-- Responsive design with Tailwind CSS
+- **Frontend**: React (with Axios, React Router)
+- **Backend**: Node.js, Express
+- **Database**: MongoDB (via Mongoose)
+- **Authentication**: JWT (Optional)
+- **Environment Management**: dotenv
 
-## Technologies
+---
 
-- Frontend:
-  - React.js 18
-  - Vite
-  - React Router 6
-  - React Hook Form
-  - Tailwind CSS
-  - Axios
+## 📂 Project Structure
 
-- Backend:
-  - Express.js
-  - MySQL with Sequelize ORM
-  - JWT authentication
-  - Bcrypt for password hashing
-  - Express Validator
+todo-mongodb/
+├── .git/
+├── uploads/
+├── .gitignore
+├── frontend/
+│   ├── node_modules/
+│   ├── src/
+│   │   ├── context/
+│   │   ├── utils/
+│   │   ├── components/
+│   │   ├── pages/
+│   │   ├── services/
+│   │   ├── ThemeProvider.js
+│   │   ├── App.jsx
+│   │   ├── App copy.jsx
+│   │   └── main.jsx
+│   ├── package-lock.json
+│   ├── package.json
+│   ├── tailwind.config.js
+│   ├── vite.config.js
+│   ├── index.html
+│   └── .gitignore
+├── backend/
+│   ├── uploads/
+│   ├── node_modules/
+│   ├── src/
+│   │   ├── models/
+│   │   ├── middlewares/
+│   │   ├── routes/
+│   │   ├── controllers/
+│   │   ├── utils/
+│   │   ├── config/
+│   │   ├── server.js
+│   │   └── app.js
+│   ├── package-lock.json
+│   ├── package.json
+│   └── .gitignore
+└── README.md
 
-## Setup
+---
 
-### Prerequisites
+## 🚀 Features
 
-- Node.js (v18 or higher)
-- MySQL server
+- Create, view, update, and delete tasks
+- RESTful API design
+- MongoDB integration using Mongoose
+- Optional: JWT authentication for private tasks
+- Responsive React UI
 
-### Installation
+---
 
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/yourusername/todo-app.git
-   cd todo-app
+## ⚙️ Setup Instructions
+
+### Backend
+
+1. Go to the backend folder:
+
+```bash
+cd backend
+npm install
+
+
+

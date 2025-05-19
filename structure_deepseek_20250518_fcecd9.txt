@@ -1,0 +1,57 @@
+todo-app/
+├── backend/
+│   ├── src/
+│   │   ├── config/
+│   │   │   └── db.js
+│   │   ├── controllers/
+│   │   │   ├── auth.controller.js
+│   │   │   └── todos.controller.js
+│   │   ├── middlewares/
+│   │   │   └── auth.js
+│   │   ├── models/
+│   │   │   ├── User.js
+│   │   │   └── Todo.js
+│   │   ├── routes/
+│   │   │   ├── auth.routes.js
+│   │   │   └── todos.routes.js
+│   │   ├── utils/
+│   │   │   └── validation.js
+│   │   ├── app.js
+│   │   └── server.js
+│   ├── .env
+│   ├── .gitignore
+│   └── package.json
+├── frontend/
+│   ├── public/
+│   ├── src/
+│   │   ├── assets/
+│   │   ├── components/
+│   │   │   ├── auth/
+│   │   │   │   ├── Login.jsx
+│   │   │   │   └── Register.jsx
+│   │   │   ├── todos/
+│   │   │   │   ├── TodoForm.jsx
+│   │   │   │   └── TodoList.jsx
+│   │   │   └── Layout.jsx
+│   │   ├── context/
+│   │   │   └── AuthContext.jsx
+│   │   ├── hooks/
+│   │   │   └── useAuth.js
+│   │   ├── pages/
+│   │   │   ├── Dashboard.jsx
+│   │   │   ├── LoginPage.jsx
+│   │   │   └── RegisterPage.jsx
+│   │   ├── services/
+│   │   │   ├── auth.service.js
+│   │   │   └── todos.service.js
+│   │   ├── utils/
+│   │   │   └── validation.js
+│   │   ├── App.jsx
+│   │   └── main.jsx
+│   ├── .env
+│   ├── .gitignore
+│   ├── index.html
+│   ├── package.json
+│   └── vite.config.js
+├── .gitignore
+└── README.md

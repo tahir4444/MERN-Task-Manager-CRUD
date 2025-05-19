@@ -138,7 +138,7 @@ export const getProfilePic = async (req, res) => {
     //res.json(user);
 
 
-    res.status(200).json({
+    res.json({
       user: {
         profile_pic: user.profile_pic
           ? `${req.protocol}://${req.get('host')}/uploads/${user.profile_pic}`

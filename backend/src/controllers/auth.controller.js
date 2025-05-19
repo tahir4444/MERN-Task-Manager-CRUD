@@ -14,10 +14,6 @@ const generateToken = (id) => {
   });
 };
 
-// ✅ Helper function to generate refresh token
-const generateRefreshToken = () => {
-  return crypto.randomBytes(40).toString('hex');
-};
 
 // ✅ Register User
 export const register = async (req, res) => {
@@ -111,11 +107,57 @@ export const login = async (req, res) => {
 export const getMe = async (req, res) => {
   try {
     const user = await User.findById(req.user.id).select('-password');
-    res.json(user);
+    //res.json(user);
+
+
+    res.status(200).json({
+      message: 'Login successful',
+      token,
+      user: {
+        id: user._id,
+        name: user.name,
+        username: user.username,
+        email: user.email,
+        mobile: user.mobile,
+        address: user.address,
+        profile_pic: user.profile_pic
+          ? `${req.protocol}://${req.get('host')}/uploads/${user.profile_pic}`
+          : null,
+      },
+    });
+
+
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 };
+
+export const getProfilePic = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id).select('-password');
+    //res.json(user);
+
+
+    res.status(200).json({
+      user: {
+        profile_pic: user.profile_pic
+          ? `${req.protocol}://${req.get('host')}/uploads/${user.profile_pic}`
+          : null,
+      },
+    });
+     const { profile_pic } = user;
+     const filePath = path.join(__dirname, 'uploads', profile_pic);
+
+    if (!fs.existsSync(filePath)) {
+      return res.status(404).json({ error: 'File not found' });
+    }
+
+    res.sendFile(filePath);
+    
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};  
 
 // ✅ Reset Password
 export const resetPassword = async (req, res) => {

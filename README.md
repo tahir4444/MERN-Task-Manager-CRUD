@@ -14,6 +14,7 @@ A simple full-stack CRUD application using MongoDB, Express, React, and Node.js 
 
 ## 📂 Project Structure
 
+```
 todo-mongodb/
 ├── .git/
 ├── uploads/
@@ -52,6 +53,7 @@ todo-mongodb/
 │   ├── package.json
 │   └── .gitignore
 └── README.md
+```
 
 ---
 
@@ -70,10 +72,10 @@ todo-mongodb/
 ### Backend
 
 1. Go to the backend folder:
-
 ```bash
 cd backend
 npm install
+```
 
 
 

@@ -14,7 +14,6 @@ const generateToken = (id) => {
   });
 };
 
-
 // ✅ Register User
 export const register = async (req, res) => {
   try {
@@ -109,8 +108,7 @@ export const getMe = async (req, res) => {
     const user = await User.findById(req.user.id).select('-password');
     //res.json(user);
 
-
-    res.status(200).json({
+    res.json({
       message: 'Login successful',
       token,
       user: {
@@ -125,8 +123,6 @@ export const getMe = async (req, res) => {
           : null,
       },
     });
-
-
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -137,7 +133,6 @@ export const getProfilePic = async (req, res) => {
     const user = await User.findById(req.user.id).select('-password');
     //res.json(user);
 
-
     res.json({
       user: {
         profile_pic: user.profile_pic
@@ -145,19 +140,18 @@ export const getProfilePic = async (req, res) => {
           : null,
       },
     });
-     const { profile_pic } = user;
-     const filePath = path.join(__dirname, 'uploads', profile_pic);
+    const { profile_pic } = user;
+    const filePath = path.join(__dirname, 'uploads', profile_pic);
 
     if (!fs.existsSync(filePath)) {
       return res.status(404).json({ error: 'File not found' });
     }
 
     res.sendFile(filePath);
-    
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
-};  
+};
 
 // ✅ Reset Password
 export const resetPassword = async (req, res) => {
@@ -165,7 +159,9 @@ export const resetPassword = async (req, res) => {
     const { token, newPassword } = req.body;
 
     if (!token || !newPassword) {
-      return res.status(400).json({ error: 'Token and new password are required' });
+      return res
+        .status(400)
+        .json({ error: 'Token and new password are required' });
     }
 
     // Verify the token

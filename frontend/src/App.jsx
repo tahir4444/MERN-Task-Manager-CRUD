@@ -1,99 +1,57 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from './context/AuthContext';
-import { ThemeProvider } from './context/ThemeContext';
-import {
-  ThemeProvider as MuiThemeProvider,
-  createTheme,
-  CssBaseline,
-} from '@mui/material';
-import Layout from './components/Layout';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
-import Dashboard from './pages/Dashboard';
-import { Suspense } from 'react';
+import DashboardPage from './pages/DashboardPage';
+import TodosPage from './pages/TodosPage';
+import 'bootstrap/dist/css/bootstrap.min.css';
+import './index.css';
 
-function App() {
-  const { isAuthenticated, isLoading } = useAuth();
+// Protected Route Component
+const ProtectedRoute = ({ children }) => {
+  const { user, loading } = useAuth();
 
-  if (isLoading) {
+  if (loading) {
     return (
-      <div className="flex justify-center items-center h-screen bg-gray-50 dark:bg-gray-900">
-        <div className="animate-pulse flex flex-col items-center">
-          <div className="h-12 w-12 bg-primary-light dark:bg-primary-dark rounded-full mb-4"></div>
-          <div className="h-4 w-32 bg-gray-200 dark:bg-gray-700 rounded"></div>
+      <div className="min-vh-100 d-flex justify-content-center align-items-center">
+        <div className="spinner-border text-primary" role="status">
+          <span className="visually-hidden">Loading...</span>
         </div>
       </div>
     );
   }
 
+  if (!user) {
+    return <Navigate to="/login" />;
+  }
+
+  return children;
+};
+
+const App = () => {
   return (
-    <ThemeProvider>
-      <MuiThemeProvider theme={createTheme()}>
-        <CssBaseline />
-        <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
-          <Routes>
-            <Route path="/" element={<Layout />}>
-              {/* Public routes */}
-              <Route
-                index
-                element={
-                  isAuthenticated ? <Navigate to="/dashboard" /> : <LoginPage />
-                }
-              />
-              <Route
-                path="login"
-                element={
-                  isAuthenticated ? <Navigate to="/dashboard" /> : <LoginPage />
-                }
-              />
-              <Route
-                path="register"
-                element={
-                  isAuthenticated ? (
-                    <Navigate to="/dashboard" />
-                  ) : (
-                    <RegisterPage />
-                  )
-                }
-              />
-
-              {/* Protected routes - wrapped in Suspense for lazy loading */}
-              <Route
-                path="dashboard"
-                element={
-                  isAuthenticated ? (
-                    <Suspense
-                      fallback={
-                        <div className="flex justify-center items-center h-64">
-                          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary-light dark:border-primary-dark"></div>
-                        </div>
-                      }
-                    >
-                      <Dashboard />
-                    </Suspense>
-                  ) : (
-                    <Navigate
-                      to="/login"
-                      state={{ from: '/dashboard' }}
-                      replace
-                    />
-                  )
-                }
-              />
-
-              {/* Catch-all route */}
-              <Route
-                path="*"
-                element={
-                  <Navigate to={isAuthenticated ? '/dashboard' : '/login'} />
-                }
-              />
-            </Route>
-          </Routes>
-        </div>
-      </MuiThemeProvider>
-    </ThemeProvider>
+    <Routes>
+      <Route path="/login" element={<LoginPage />} />
+      <Route path="/register" element={<RegisterPage />} />
+      <Route
+        path="/dashboard"
+        element={
+          <ProtectedRoute>
+            <DashboardPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/todos"
+        element={
+          <ProtectedRoute>
+            <TodosPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route path="/" element={<Navigate to="/dashboard" />} />
+    </Routes>
   );
-}
+};
 
 export default App;

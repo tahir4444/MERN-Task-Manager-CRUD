@@ -17,5 +17,8 @@ export default defineConfig({
   optimizeDeps: {
     include: ['react', 'react-dom', 'react-router-dom', 'axios'],
   },
+  define: {
+    'process.env.VITE_API_URL': JSON.stringify('http://localhost:5000/api'),
+  },
 });
 // This Vite configuration file sets up a React application with a development server

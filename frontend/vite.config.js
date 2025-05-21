@@ -8,7 +8,7 @@ export default defineConfig({
     host: 'localhost',
     proxy: {
       '/api': {
-        target: 'http://localhost:5000', // Your backend URL
+        target: process.env.VITE_API_URL || 'http://localhost:5000',
         changeOrigin: true,
         secure: false,
       },
@@ -18,7 +18,7 @@ export default defineConfig({
     include: ['react', 'react-dom', 'react-router-dom', 'axios'],
   },
   define: {
-    'process.env.VITE_API_URL': JSON.stringify('http://localhost:5000/api'),
+    'process.env.VITE_API_URL': JSON.stringify(process.env.VITE_API_URL || 'http://localhost:5000/api'),
   },
 });
 // This Vite configuration file sets up a React application with a development server

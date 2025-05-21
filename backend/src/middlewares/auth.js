@@ -41,7 +41,7 @@ export const blacklistToken = async (req, token) => {
       token,
       userId: req.user._id,
       ipAddress: req.ip || req.connection.remoteAddress,
-      expiresAt
+      expiresAt,
     });
   } catch (error) {
     console.error('Error blacklisting token:', error);

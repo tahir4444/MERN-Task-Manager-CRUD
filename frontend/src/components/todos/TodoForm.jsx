@@ -1,58 +1,67 @@
-import { useForm } from 'react-hook-form';
-import { toast } from 'react-toastify';
-import { createTodo } from '../../services/todos.service.js';
+import { useState } from 'react';
 
 const TodoForm = ({ onTodoAdded }) => {
-  const { register, handleSubmit, reset, formState: { errors } } = useForm();
+  const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  const onSubmit = async (data) => {
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!title.trim()) return;
+
     try {
-      const newTodo = await createTodo(data);
-      onTodoAdded(newTodo);
-      reset();
-      toast.success('Todo added successfully');
+      setLoading(true);
+      await onTodoAdded({
+        title: title.trim(),
+        description: description.trim()
+      });
+      setTitle('');
+      setDescription('');
     } catch (error) {
-      toast.error(error.response?.data?.error || 'Failed to add todo');
+      console.error('Error adding todo:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="mb-6">
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <div className="sm:col-span-2">
-          <label htmlFor="title" className="block text-sm font-medium text-gray-700">
-            Title*
-          </label>
-          <input
-            id="title"
-            type="text"
-            {...register('title', { required: 'Title is required' })}
-            className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-          />
-          {errors.title && (
-            <p className="mt-1 text-sm text-red-600">{errors.title.message}</p>
-          )}
-        </div>
-        <div className="sm:col-span-2">
-          <label htmlFor="description" className="block text-sm font-medium text-gray-700">
-            Description
-          </label>
-          <textarea
-            id="description"
-            rows={3}
-            {...register('description')}
-            className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-          />
-        </div>
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div>
+        <label htmlFor="title" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+          Title
+        </label>
+        <input
+          type="text"
+          id="title"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+          placeholder="Enter todo title"
+          required
+        />
       </div>
-      <div className="mt-4">
-        <button
-          type="submit"
-          className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-        >
-          Add Todo
-        </button>
+      <div>
+        <label htmlFor="description" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+          Description (optional)
+        </label>
+        <textarea
+          id="description"
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+          placeholder="Enter todo description"
+          rows={3}
+        />
       </div>
+      <button
+        type="submit"
+        disabled={loading || !title.trim()}
+        className={`w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
+          (loading || !title.trim()) ? 'opacity-50 cursor-not-allowed' : ''
+        }`}
+      >
+        {loading ? 'Adding...' : 'Add Todo'}
+      </button>
     </form>
   );
 };

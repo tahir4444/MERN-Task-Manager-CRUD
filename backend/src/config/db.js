@@ -12,6 +12,14 @@ if (!process.env.MONGODB_URI) {
 
 const connectDB = async () => {
   try {
+    // Log the masked connection string
+    const maskedUri = process.env.MONGODB_URI.replace(
+      /mongodb(\+srv)?:\/\/([^:]+):([^@]+)@/,
+      'mongodb$1://****:****@'
+    );
+    console.log('Connecting to MongoDB:', maskedUri);
+    console.log('Database Name:', DB_NAME);
+
     const conn = await mongoose.connect(process.env.MONGODB_URI, {
       dbName: DB_NAME
     });

@@ -1,115 +1,136 @@
-import { createContext, useContext, useState, useEffect } from 'react';
-import axios from 'axios';
-import { API_URL } from '../config';
+import React, { createContext, useContext, useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { toast } from 'react-toastify';
+import authService from '../services/auth.service';
 
-const AuthContext = createContext();
+const AuthContext = createContext(null);
 
-export const useAuth = () => {
-  return useContext(AuthContext);
-};
-
-export const AuthProvider = ({ children }) => {
+const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
-    // Check for stored user data on initial load
-    const storedUser = localStorage.getItem('user');
-    if (storedUser) {
-      const userData = JSON.parse(storedUser);
-      setUser(userData);
-      // Set the auth token for future requests
-      axios.defaults.headers.common['Authorization'] = `Bearer ${userData.token}`;
+    const token = localStorage.getItem('token');
+    if (token) {
+      fetchUser();
+    } else {
+      setLoading(false);
+      setIsAuthenticated(false);
     }
-    setLoading(false);
   }, []);
+
+  const fetchUser = async () => {
+    try {
+      const response = await authService.getMe();
+      setUser(response.user);
+      setIsAuthenticated(true);
+    } catch (error) {
+      console.error('Error fetching user:', error);
+      localStorage.removeItem('token');
+      setUser(null);
+      setIsAuthenticated(false);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const login = async (email, password) => {
     try {
-      const response = await axios.post(`${API_URL}/auth/login`, {
-        email,
-        password,
-      });
-      const userData = response.data;
-      setUser(userData);
-      // Store user data in localStorage
-      localStorage.setItem('user', JSON.stringify(userData));
-      // Set the auth token for future requests
-      axios.defaults.headers.common['Authorization'] = `Bearer ${userData.token}`;
-      return userData;
+      const response = await authService.login(email, password);
+      localStorage.setItem('token', response.token);
+      setUser(response.user);
+      setIsAuthenticated(true);
+      toast.success('Login successful');
+      navigate('/dashboard');
     } catch (error) {
+      console.error('Login error:', error);
+      toast.error(error.response?.data?.message || 'Login failed');
       throw error;
     }
   };
 
-  const register = async (name, username, email, mobile, address, password, profile_pic) => {
+  const register = async (userData) => {
     try {
-      const formData = new FormData();
-      formData.append('name', name);
-      formData.append('username', username);
-      formData.append('email', email);
-      formData.append('mobile', mobile);
-      formData.append('address', address);
-      formData.append('password', password);
-      if (profile_pic?.[0]) {
-        formData.append('profile_pic', profile_pic[0]);
-      }
-
-      const response = await axios.post(`${API_URL}/auth/register`, formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      });
-      
-      const userData = response.data;
-      setUser(userData);
-      // Store user data in localStorage
-      localStorage.setItem('user', JSON.stringify(userData));
-      // Set the auth token for future requests
-      axios.defaults.headers.common['Authorization'] = `Bearer ${userData.token}`;
-      return userData;
+      const response = await authService.register(userData);
+      localStorage.setItem('token', response.token);
+      setUser(response.user);
+      setIsAuthenticated(true);
+      toast.success('Registration successful');
+      navigate('/dashboard');
     } catch (error) {
+      console.error('Registration error:', error);
+      toast.error(error.response?.data?.message || 'Registration failed');
       throw error;
     }
   };
 
   const logout = () => {
+    localStorage.removeItem('token');
     setUser(null);
-    // Remove user data from localStorage
-    localStorage.removeItem('user');
-    // Remove the auth token
-    delete axios.defaults.headers.common['Authorization'];
+    setIsAuthenticated(false);
+    navigate('/login');
+    toast.success('Logged out successfully');
   };
 
-  // Set up axios interceptor to handle token expiration
-  useEffect(() => {
-    const interceptor = axios.interceptors.response.use(
-      (response) => response,
-      (error) => {
-        if (error.response?.status === 401) {
-          logout();
-        }
-        return Promise.reject(error);
-      }
-    );
-
-    return () => {
-      axios.interceptors.response.eject(interceptor);
-    };
-  }, []);
-
-  const value = {
-    user,
-    loading,
-    login,
-    register,
-    logout,
-    isAuthenticated: !!user,
+  const hasRole = (roleName) => {
+    return user?.roles?.includes(roleName);
   };
+
+  const hasAnyRole = (roleNames) => {
+    return user?.roles?.some(role => roleNames.includes(role));
+  };
+
+  const hasAllRoles = (roleNames) => {
+    return user?.roles?.every(role => roleNames.includes(role));
+  };
+
+  if (loading) {
+    return <div>Loading...</div>;
+  }
 
   return (
-    <AuthContext.Provider value={value}>
-      {!loading && children}
+    <AuthContext.Provider
+      value={{
+        user,
+        isAuthenticated,
+        login,
+        register,
+        logout,
+        hasRole,
+        hasAnyRole,
+        hasAllRoles
+      }}
+    >
+      {children}
     </AuthContext.Provider>
   );
 };
+
+const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
+};
+
+const ProtectedRoute = ({ children, requiredRoles }) => {
+  const { user, isAuthenticated, hasAnyRole } = useAuth();
+  const navigate = useNavigate();
+
+  if (!isAuthenticated || !user) {
+    navigate('/login');
+    return null;
+  }
+
+  if (requiredRoles && !hasAnyRole(requiredRoles)) {
+    navigate('/unauthorized');
+    return null;
+  }
+
+  return children;
+};
+
+export { AuthProvider, useAuth, ProtectedRoute };

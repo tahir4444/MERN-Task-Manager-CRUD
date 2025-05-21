@@ -1,40 +1,76 @@
 import axios from 'axios';
 import { getToken } from '../utils/auth.js';
+import { API_BASE_URL } from '../config';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+// Create axios instance with default config
+const api = axios.create({
+  baseURL: API_BASE_URL,
+  headers: {
+    'Content-Type': 'application/json'
+  }
+});
 
-const getAuthHeader = () => {
-  const token = getToken();
-  return {
-    headers: {
-      Authorization: `Bearer ${token}`
+// Add request interceptor to add token to all requests
+api.interceptors.request.use(
+  (config) => {
+    const token = getToken();
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
     }
-  };
-};
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
+
+// Add response interceptor to handle 401 errors
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      localStorage.removeItem('token');
+      window.location.href = '/login';
+    }
+    return Promise.reject(error);
+  }
+);
 
 export const getTodos = async () => {
-  const response = await axios.get(`${API_BASE_URL}/todos`, getAuthHeader());
-  return response.data;
+  try {
+    const response = await api.get('/todos');
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching todos:', error);
+    throw error;
+  }
 };
 
 export const createTodo = async (todoData) => {
-  const response = await axios.post(
-    `${API_BASE_URL}/todos`,
-    todoData,
-    getAuthHeader()
-  );
-  return response.data;
+  try {
+    const response = await api.post('/todos', todoData);
+    return response.data;
+  } catch (error) {
+    console.error('Error creating todo:', error);
+    throw error;
+  }
 };
 
 export const updateTodo = async (id, todoData) => {
-  const response = await axios.put(
-    `${API_BASE_URL}/todos/${id}`,
-    todoData,
-    getAuthHeader()
-  );
-  return response.data;
+  try {
+    const response = await api.put(`/todos/${id}`, todoData);
+    return response.data;
+  } catch (error) {
+    console.error('Error updating todo:', error);
+    throw error;
+  }
 };
 
 export const deleteTodo = async (id) => {
-  await axios.delete(`${API_BASE_URL}/todos/${id}`, getAuthHeader());
+  try {
+    await api.delete(`/todos/${id}`);
+  } catch (error) {
+    console.error('Error deleting todo:', error);
+    throw error;
+  }
 };

@@ -1,15 +1,105 @@
-import { useContext } from 'react';
+import { useState, useEffect, useContext } from 'react';
 import { ThemeContext } from '../context/ThemeContext';
+import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
+import { useAuth } from '../context/AuthContext';
+import { API_BASE_URL } from '../config';
 import TodoForm from '../components/todos/TodoForm';
 import TodoList from '../components/todos/TodoList';
+import { toast } from 'react-toastify';
 
 const Dashboard = () => {
   const { theme } = useContext(ThemeContext);
+  const [todos, setTodos] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  
+  console.log('Dashboard rendered');
 
-  const handleTodoAdded = (newTodo) => {
-    // This function will be called when a new todo is added
-    console.log('New todo added:', newTodo);
+  console.log('Dashboard rendered, user:', user);
+
+  // Fetch todos when component mounts
+  useEffect(() => {
+    console.log('useEffect triggered, user:', user);
+    if (!user) {
+      console.log('No user found, redirecting to login');
+      navigate('/login');
+      return;
+    }
+    console.log('User found, fetching todos');
+    fetchTodos();
+  }, [user, navigate]);
+
+  const fetchTodos = async () => {
+    try {
+      setLoading(true);
+      console.log('Fetching todos...');
+      const response = await axios.get(`${API_BASE_URL}/todos`, {
+        headers: {
+          Authorization: `Bearer ${user.token}`
+        }
+      });
+      console.log('Fetched todos:', response.data);
+      setTodos(response.data);
+      setError(null);
+    } catch (err) {
+      console.error('Error fetching todos:', err);
+      if (err.response?.status === 401) {
+        console.log('Unauthorized, redirecting to login');
+        navigate('/login');
+      } else {
+        setError('Failed to fetch todos');
+      }
+    } finally {
+      setLoading(false);
+    }
   };
+
+  const handleTodoAdded = async (newTodo) => {
+    try {
+      const response = await axios.post(`${API_BASE_URL}/todos`, newTodo, {
+        headers: {
+          Authorization: `Bearer ${user.token}`
+        }
+      });
+      console.log('Added new todo:', response.data);
+      setTodos(prevTodos => [...prevTodos, response.data]);
+      setError(null);
+    } catch (err) {
+      if (err.response?.status === 401) {
+        navigate('/login');
+      } else {
+        setError('Failed to add todo');
+      }
+    }
+  };
+
+  const handleTodoUpdated = (updatedTodo) => {
+    console.log('Updating todo in state:', updatedTodo);
+    setTodos(prevTodos => prevTodos.map(todo => 
+      todo._id === updatedTodo._id ? updatedTodo : todo
+    ));
+  };
+
+  const handleTodoDeleted = (todoId) => {
+    console.log('Removing todo from state:', todoId);
+    setTodos(prevTodos => prevTodos.filter(todo => todo._id !== todoId));
+  };
+
+  // Calculate stats
+  const totalTasks = todos.length;
+  const completedTasks = todos.filter(todo => todo.completed).length;
+  const pendingTasks = totalTasks - completedTasks;
+
+  console.log('Current stats:', { totalTasks, completedTasks, pendingTasks });
+
+  if (!user) {
+    console.log('No user found, redirecting to login');
+    navigate('/login');
+    return;
+  }
 
   return (
     <div className="animate-fade-in">
@@ -24,6 +114,12 @@ const Dashboard = () => {
           </span>
         </div>
       </div>
+
+      {error && (
+        <div className="mb-4 p-4 bg-red-100 text-red-700 rounded-lg">
+          {error}
+        </div>
+      )}
 
       {/* Add Todo Card */}
       <div
@@ -55,17 +151,24 @@ const Dashboard = () => {
             Your Tasks
           </h2>
           <span className="px-3 py-1 text-sm rounded-full bg-blue-600 text-white">
-            {/* This would be dynamic in a real app */}
-            {5} Pending
+            {pendingTasks} Pending
           </span>
         </div>
 
         <div className="space-y-4">
-          <TodoList />
+          {loading ? (
+            <div className="text-center py-4">Loading todos...</div>
+          ) : (
+            <TodoList 
+              todos={todos}
+              onTodoUpdated={handleTodoUpdated}
+              onTodoDeleted={handleTodoDeleted}
+            />
+          )}
         </div>
       </div>
 
-      {/* Stats Section (Optional) */}
+      {/* Stats Section */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
         <div
           className={`p-4 rounded-lg shadow-md transition-colors duration-200 ${
@@ -76,7 +179,7 @@ const Dashboard = () => {
             Total Tasks
           </h3>
           <p className="text-2xl font-bold text-blue-600 dark:text-blue-400 mt-2">
-            12
+            {totalTasks}
           </p>
         </div>
         <div
@@ -88,7 +191,7 @@ const Dashboard = () => {
             Completed
           </h3>
           <p className="text-2xl font-bold text-green-600 dark:text-green-400 mt-2">
-            7
+            {completedTasks}
           </p>
         </div>
         <div
@@ -100,7 +203,7 @@ const Dashboard = () => {
             Pending
           </h3>
           <p className="text-2xl font-bold text-yellow-600 dark:text-yellow-400 mt-2">
-            5
+            {pendingTasks}
           </p>
         </div>
       </div>

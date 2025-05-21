@@ -1,29 +1,85 @@
 import axios from 'axios';
+import { API_BASE_URL } from '../config';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+// Create axios instance with default config
+const api = axios.create({
+  baseURL: API_BASE_URL,
+  headers: {
+    'Content-Type': 'application/json'
+  }
+});
 
 export const login = async (email, password) => {
-  const response = await axios.post(`${API_BASE_URL}/auth/login`, {
-    email,
-    password
-  });
-  return response.data;
+  try {
+    const response = await api.post('/auth/login', {
+      email,
+      password
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Login error:', error);
+    throw error;
+  }
 };
 
-export const register = async (name, email, password) => {
-  const response = await axios.post(`${API_BASE_URL}/auth/register`, {
-    name,
-    email,
-    password
-  });
-  return response.data;
+export const register = async (userData) => {
+  try {
+    const response = await api.post('/auth/register', userData);
+    return response.data;
+  } catch (error) {
+    console.error('Registration error:', error);
+    throw error;
+  }
 };
 
-export const getMe = async (token) => {
-  const response = await axios.get(`${API_BASE_URL}/auth/me`, {
-    headers: {
-      Authorization: `Bearer ${token}`
-    }
-  });
-  return response.data;
+export const getMe = async () => {
+  try {
+    const token = localStorage.getItem('token');
+    const response = await api.get('/auth/me', {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Get me error:', error);
+    throw error;
+  }
 };
+
+export const logout = async () => {
+  try {
+    const token = localStorage.getItem('token');
+    await api.post('/auth/logout', {}, {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    });
+  } catch (error) {
+    console.error('Logout error:', error);
+    throw error;
+  }
+};
+
+export const resetPassword = async (token, newPassword) => {
+  try {
+    const response = await api.post('/auth/reset-password', {
+      token,
+      newPassword
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Reset password error:', error);
+    throw error;
+  }
+};
+
+const authService = {
+  login,
+  register,
+  getMe,
+  logout,
+  resetPassword
+};
+
+export default authService;

@@ -5,6 +5,7 @@ import BlacklistedToken from '../models/BlacklistedToken.js';
 import bcrypt from 'bcryptjs';
 import { blacklistToken } from '../middlewares/auth.js';
 import crypto from 'crypto';
+import Role from '../models/Role.js';
 dotenv.config();
 
 // ✅ Helper function to generate JWT
@@ -17,73 +18,44 @@ const generateToken = (id) => {
 // ✅ Register User
 export const register = async (req, res) => {
   try {
-    const { name, username, email, mobile, address, password } = req.body;
+    const { name, username, email, password, mobile, address } = req.body;
     const profile_pic = req.file ? req.file.filename : null;
 
-    // Check if username already exists
-    const existingUsername = await User.findOne({ username });
-    if (existingUsername) {
-      return res.status(400).json({ error: 'Username already in use' });
-    }
-
-    // Check if email already exists
-    const existingUser = await User.findOne({ email });
+    // Check if user already exists
+    const existingUser = await User.findOne({ $or: [{ email }, { username }] });
     if (existingUser) {
-      return res.status(400).json({ error: 'Email already in use' });
+      return res.status(400).json({ message: 'User already exists' });
     }
 
-    // Create new user
-    const user = await User.create({
+    // Get default user role
+    const userRole = await Role.findOne({ name: 'user' });
+    if (!userRole) {
+      return res.status(500).json({ message: 'Default role not found' });
+    }
+
+    // Create new user with default role
+    const user = new User({
       name,
       username,
       email,
+      password,
       mobile,
       address,
       profile_pic,
-      password,
+      roles: [userRole._id]
     });
 
-    const token = generateToken(user._id);
+    await user.save();
+
+    // Generate token
+    const token = jwt.sign(
+      { id: user._id },
+      process.env.JWT_SECRET,
+      { expiresIn: '1d' }
+    );
 
     res.status(201).json({
       message: 'User registered successfully',
-      user: {
-        id: user._id,
-        name: user.name,
-        username: user.username,
-        mobile: user.mobile,
-        address: user.address,
-        profile_pic: profile_pic
-          ? `${req.protocol}://${req.get('host')}/uploads/${profile_pic}`
-          : null,
-        email: user.email,
-      },
-      token,
-    });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-};
-
-// ✅ Login User
-export const login = async (req, res) => {
-  try {
-    const { email, password } = req.body;
-
-    const user = await User.findOne({ email });
-    if (!user) {
-      return res.status(401).json({ error: 'Invalid credentials' });
-    }
-
-    const isMatch = await user.comparePassword(password);
-    if (!isMatch) {
-      return res.status(401).json({ error: 'Invalid credentials' });
-    }
-
-    const token = generateToken(user._id);
-
-    res.status(200).json({
-      message: 'Login successful',
       token,
       user: {
         id: user._id,
@@ -95,18 +67,38 @@ export const login = async (req, res) => {
         profile_pic: user.profile_pic
           ? `${req.protocol}://${req.get('host')}/uploads/${user.profile_pic}`
           : null,
-      },
+        roles: [userRole.name]
+      }
     });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error('Registration error:', error);
+    res.status(500).json({ message: 'Error registering user' });
   }
 };
 
-// ✅ Get Authenticated User
-export const getMe = async (req, res) => {
+// ✅ Login User
+export const login = async (req, res) => {
   try {
-    const user = await User.findById(req.user.id).select('-password');
-    //res.json(user);
+    const { email, password } = req.body;
+
+    // Find user
+    const user = await User.findOne({ email }).populate('roles');
+    if (!user) {
+      return res.status(401).json({ message: 'Invalid credentials' });
+    }
+
+    // Check password
+    const isMatch = await user.comparePassword(password);
+    if (!isMatch) {
+      return res.status(401).json({ message: 'Invalid credentials' });
+    }
+
+    // Generate token
+    const token = jwt.sign(
+      { id: user._id },
+      process.env.JWT_SECRET,
+      { expiresIn: '1d' }
+    );
 
     res.json({
       message: 'Login successful',
@@ -121,10 +113,43 @@ export const getMe = async (req, res) => {
         profile_pic: user.profile_pic
           ? `${req.protocol}://${req.get('host')}/uploads/${user.profile_pic}`
           : null,
-      },
+        roles: user.roles.map(role => role.name)
+      }
     });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error('Login error:', error);
+    res.status(500).json({ message: 'Error logging in' });
+  }
+};
+
+// ✅ Get Authenticated User
+export const getMe = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id)
+      .select('-password')
+      .populate('roles');
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    res.json({
+      user: {
+        id: user._id,
+        name: user.name,
+        username: user.username,
+        email: user.email,
+        address: user.address,
+        mobile: user.mobile,
+        profile_pic: user.profile_pic
+          ? `${req.protocol}://${req.get('host')}/uploads/${user.profile_pic}`
+          : null,
+        roles: user.roles.map(role => role.name)
+      }
+    });
+  } catch (error) {
+    console.error('Get me error:', error);
+    res.status(500).json({ message: 'Error fetching user data' });
   }
 };
 

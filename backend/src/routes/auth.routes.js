@@ -7,6 +7,7 @@ import {
   getMe,
   resetPassword,
   getProfilePic,
+  getProfile,
 } from '../controllers/auth.controller.js';
 
 import upload from '../middlewares/upload.js';
@@ -31,9 +32,12 @@ router.post(
 router.post('/login', validateLoginInput, handleValidationErrors, login);
 
 router.get('/me', authenticate, getMe);
+router.get('/profile', authenticate, getMe);
+
+// router.get('/profile', authenticate, getProfile);
 
 router.post('/logout', authenticate, logoutUser); // or remove `authenticate` if token not required
-router.get('/profile', authenticate, getMe);
+
 router.post('/reset-password', authenticate, resetPassword);
 router.get('/get-profile-pic', authenticate, getProfilePic);
 /*router.post('/verify-otp', verifyOtp);

@@ -42,17 +42,15 @@ export const register = async (req, res) => {
       mobile,
       address,
       profile_pic,
-      roles: [userRole._id]
+      roles: [userRole._id],
     });
 
     await user.save();
 
     // Generate token
-    const token = jwt.sign(
-      { id: user._id },
-      process.env.JWT_SECRET,
-      { expiresIn: '1d' }
-    );
+    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
+      expiresIn: '1d',
+    });
 
     res.status(201).json({
       message: 'User registered successfully',
@@ -67,8 +65,8 @@ export const register = async (req, res) => {
         profile_pic: user.profile_pic
           ? `${req.protocol}://${req.get('host')}/uploads/${user.profile_pic}`
           : null,
-        roles: [userRole.name]
-      }
+        roles: [userRole.name],
+      },
     });
   } catch (error) {
     console.error('Registration error:', error);
@@ -94,11 +92,9 @@ export const login = async (req, res) => {
     }
 
     // Generate token
-    const token = jwt.sign(
-      { id: user._id },
-      process.env.JWT_SECRET,
-      { expiresIn: '1d' }
-    );
+    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
+      expiresIn: '1d',
+    });
 
     res.json({
       message: 'Login successful',
@@ -113,8 +109,8 @@ export const login = async (req, res) => {
         profile_pic: user.profile_pic
           ? `${req.protocol}://${req.get('host')}/uploads/${user.profile_pic}`
           : null,
-        roles: user.roles.map(role => role.name)
-      }
+        roles: user.roles.map((role) => role.name),
+      },
     });
   } catch (error) {
     console.error('Login error:', error);
@@ -123,6 +119,36 @@ export const login = async (req, res) => {
 };
 
 // ✅ Get Authenticated User
+export const getProfile = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id)
+      .select('-password')
+      .populate('roles');
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    res.json({
+      user: {
+        id: user._id,
+        name: user.name,
+        username: user.username,
+        email: user.email,
+        address: user.address,
+        mobile: user.mobile,
+        profile_pic: user.profile_pic
+          ? `${req.protocol}://${req.get('host')}/uploads/${user.profile_pic}`
+          : null,
+        roles: user.roles.map((role) => role.name),
+      },
+    });
+  } catch (error) {
+    console.error('Get me error:', error);
+    res.status(500).json({ message: 'Error fetching user data' });
+  }
+};
+
 export const getMe = async (req, res) => {
   try {
     const user = await User.findById(req.user.id)
@@ -144,8 +170,8 @@ export const getMe = async (req, res) => {
         profile_pic: user.profile_pic
           ? `${req.protocol}://${req.get('host')}/uploads/${user.profile_pic}`
           : null,
-        roles: user.roles.map(role => role.name)
-      }
+        roles: user.roles.map((role) => role.name),
+      },
     });
   } catch (error) {
     console.error('Get me error:', error);

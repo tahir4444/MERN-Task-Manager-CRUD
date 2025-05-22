@@ -26,16 +26,20 @@ const Navbar = () => {
   }, []);
 
   const isAdmin = user?.role?.name === 'admin' || user?.role?.name === 'superadmin';
+  const roleName = typeof user?.role === 'object' ? user.role.name : user?.role;
 
   return (
     <nav className="navbar navbar-expand-lg navbar-dark bg-primary">
       <div className="container">
         <Link className="navbar-brand" to="/">Task Manager</Link>
-        <button 
-          className="navbar-toggler" 
-          type="button" 
-          data-bs-toggle="collapse" 
+        <button
+          className="navbar-toggler"
+          type="button"
+          data-bs-toggle="collapse"
           data-bs-target="#navbarNav"
+          aria-controls="navbarNav"
+          aria-expanded="false"
+          aria-label="Toggle navigation"
         >
           <span className="navbar-toggler-icon"></span>
         </button>
@@ -67,7 +71,7 @@ const Navbar = () => {
                 >
                   <div className="d-flex flex-column align-items-end">
                     <span className="fw-bold" style={{ fontSize: '0.9rem' }}>{user.name || user.email}</span>
-                    <small className="text-white-50" style={{ fontSize: '0.75rem' }}>{user.role || 'User'}</small>
+                    <small className="text-white-50" style={{ fontSize: '0.75rem' }}>{roleName}</small>
                   </div>
                   <div 
                     className="rounded-circle bg-white d-flex align-items-center justify-content-center"
@@ -114,50 +118,54 @@ const Navbar = () => {
                     <div className="fw-bold text-primary" style={{ fontSize: '0.9rem' }}>Account</div>
                     <div className="text-muted" style={{ fontSize: '0.8rem' }}>{user.email}</div>
                   </div>
-                  <Link 
-                    className="dropdown-item d-flex align-items-center gap-2 py-2 px-3 rounded" 
-                    to="/users" 
-                    onClick={() => setShowDropdown(false)}
-                    style={{ 
-                      transition: 'all 0.2s',
-                      color: '#495057',
-                      fontSize: '0.9rem'
-                    }}
-                    onMouseOver={(e) => {
-                      e.currentTarget.style.backgroundColor = '#f8f9fa';
-                      e.currentTarget.style.color = '#0d6efd';
-                    }}
-                    onMouseOut={(e) => {
-                      e.currentTarget.style.backgroundColor = 'transparent';
-                      e.currentTarget.style.color = '#495057';
-                    }}
-                  >
-                    <i className="bi bi-people-fill" style={{ fontSize: '1rem' }}></i>
-                    User Management
-                  </Link>
-                  <Link 
-                    className="dropdown-item d-flex align-items-center gap-2 py-2 px-3 rounded" 
-                    to="/roles" 
-                    onClick={() => setShowDropdown(false)}
-                    style={{ 
-                      transition: 'all 0.2s',
-                      color: '#495057',
-                      fontSize: '0.9rem'
-                    }}
-                    onMouseOver={(e) => {
-                      e.currentTarget.style.backgroundColor = '#f8f9fa';
-                      e.currentTarget.style.color = '#0d6efd';
-                    }}
-                    onMouseOut={(e) => {
-                      e.currentTarget.style.backgroundColor = 'transparent';
-                      e.currentTarget.style.color = '#495057';
-                    }}
-                  >
-                    <i className="bi bi-shield-lock-fill" style={{ fontSize: '1rem' }}></i>
-                    Roles Management
-                  </Link>
-                  <div className="dropdown-divider my-2"></div>
-                  <button 
+                  {isAdmin && (
+                    <>
+                      <Link 
+                        className="dropdown-item d-flex align-items-center gap-2 py-2 px-3 rounded" 
+                        to="/users" 
+                        onClick={() => setShowDropdown(false)}
+                        style={{ 
+                          transition: 'all 0.2s',
+                          color: '#495057',
+                          fontSize: '0.9rem'
+                        }}
+                        onMouseOver={(e) => {
+                          e.currentTarget.style.backgroundColor = '#f8f9fa';
+                          e.currentTarget.style.color = '#0d6efd';
+                        }}
+                        onMouseOut={(e) => {
+                          e.currentTarget.style.backgroundColor = 'transparent';
+                          e.currentTarget.style.color = '#495057';
+                        }}
+                      >
+                        <i className="bi bi-people-fill" style={{ fontSize: '1rem' }}></i>
+                        User Management
+                      </Link>
+                      <Link 
+                        className="dropdown-item d-flex align-items-center gap-2 py-2 px-3 rounded" 
+                        to="/roles" 
+                        onClick={() => setShowDropdown(false)}
+                        style={{ 
+                          transition: 'all 0.2s',
+                          color: '#495057',
+                          fontSize: '0.9rem'
+                        }}
+                        onMouseOver={(e) => {
+                          e.currentTarget.style.backgroundColor = '#f8f9fa';
+                          e.currentTarget.style.color = '#0d6efd';
+                        }}
+                        onMouseOut={(e) => {
+                          e.currentTarget.style.backgroundColor = 'transparent';
+                          e.currentTarget.style.color = '#495057';
+                        }}
+                      >
+                        <i className="bi bi-shield-lock-fill" style={{ fontSize: '1rem' }}></i>
+                        Roles Management
+                      </Link>
+                      <div className="dropdown-divider my-2"></div>
+                    </>
+                  )}
+                  <button
                     className="dropdown-item d-flex align-items-center gap-2 py-2 px-3 rounded" 
                     onClick={() => {
                       setShowDropdown(false);

@@ -122,7 +122,11 @@ export const login = async (req, res) => {
         profile_pic: user.profile_pic
           ? `${req.protocol}://${req.get('host')}/uploads/${user.profile_pic}`
           : null,
-        role: user.role.name,
+        role: {
+          name: user.role.name,
+          description: user.role.description,
+          permissions: user.role.permissions
+        },
         token
       }
     });
@@ -170,10 +174,21 @@ export const getMe = async (req, res) => {
   try {
     const user = await User.findById(req.user.id)
       .select('-password')
-      .populate('role');
+      .populate({
+        path: 'role',
+        select: 'name description permissions'
+      });
 
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
+    }
+
+    if (!user.role) {
+      console.error('User role not found:', {
+        userId: user._id,
+        email: user.email
+      });
+      return res.status(500).json({ message: 'User role not found' });
     }
 
     res.json({
@@ -187,7 +202,11 @@ export const getMe = async (req, res) => {
         profile_pic: user.profile_pic
           ? `${req.protocol}://${req.get('host')}/uploads/${user.profile_pic}`
           : null,
-        role: user.role.name,
+        role: {
+          name: user.role.name,
+          description: user.role.description,
+          permissions: user.role.permissions
+        }
       },
     });
   } catch (error) {

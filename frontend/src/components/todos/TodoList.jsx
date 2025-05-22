@@ -9,21 +9,24 @@ const TodoList = ({ todos, onTodoUpdated, onTodoDeleted }) => {
   const handleToggleComplete = async (id, completed) => {
     try {
       setLoading(true);
-      console.log('Toggling todo with token:', axios.defaults.headers.common['Authorization']);
+      const token = localStorage.getItem('token');
+      if (!token) {
+        toast.error('Session expired. Please login again.');
+        return;
+      }
+
       const todo = todos.find(t => t._id === id);
       const response = await axios.put(`${API_BASE_URL}/todos/${id}`, {
         ...todo,
         completed: !completed
+      }, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
       });
-      console.log('Toggle response:', response.data);
       onTodoUpdated(response.data);
       toast.success('Todo updated successfully');
     } catch (error) {
-      console.error('Error details:', {
-        status: error.response?.status,
-        data: error.response?.data,
-        headers: error.response?.headers
-      });
       if (error.response?.status === 401) {
         toast.error('Session expired. Please login again.');
       } else {
@@ -38,17 +41,20 @@ const TodoList = ({ todos, onTodoUpdated, onTodoDeleted }) => {
   const handleDelete = async (id) => {
     try {
       setLoading(true);
-      console.log('Deleting todo with token:', axios.defaults.headers.common['Authorization']);
-      await axios.delete(`${API_BASE_URL}/todos/${id}`);
-      console.log('Delete successful for todo:', id);
+      const token = localStorage.getItem('token');
+      if (!token) {
+        toast.error('Session expired. Please login again.');
+        return;
+      }
+
+      await axios.delete(`${API_BASE_URL}/todos/${id}`, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
       onTodoDeleted(id);
       toast.success('Todo deleted successfully');
     } catch (error) {
-      console.error('Error details:', {
-        status: error.response?.status,
-        data: error.response?.data,
-        headers: error.response?.headers
-      });
       if (error.response?.status === 401) {
         toast.error('Session expired. Please login again.');
       } else {
@@ -61,51 +67,91 @@ const TodoList = ({ todos, onTodoUpdated, onTodoDeleted }) => {
   };
 
   if (todos.length === 0) {
-    return <div className="text-center py-4">No todos found. Add one to get started!</div>;
+    return <div className="text-center py-4 text-muted">No todos found. Add one to get started!</div>;
   }
 
   return (
-    <div className="space-y-4">
+    <div className="list-group">
       {todos.map((todo) => (
         <div
           key={todo._id}
-          className={`p-4 border rounded-lg ${todo.completed ? 'bg-gray-50' : 'bg-white'}`}
+          className={`list-group-item list-group-item-action d-flex justify-content-between align-items-center p-2 mb-2 rounded-2 border-0 ${
+            todo.completed ? 'bg-light' : 'bg-white'
+          }`}
+          style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}
         >
-          <div className="flex items-start justify-between">
-            <div className="flex-1">
-              <h3
-                className={`text-lg font-medium ${
-                  todo.completed ? 'line-through text-gray-500' : 'text-gray-900'
-                }`}
-              >
+          <div className="d-flex align-items-center gap-2">
+            <div className="form-check">
+              <input
+                type="checkbox"
+                className="form-check-input"
+                checked={todo.completed}
+                onChange={() => handleToggleComplete(todo._id, todo.completed)}
+                style={{ 
+                  width: '1rem', 
+                  height: '1rem',
+                  cursor: 'pointer',
+                  borderColor: todo.completed ? '#198754' : '#dee2e6'
+                }}
+              />
+            </div>
+            <div>
+              <h6 className={`mb-0 fw-semibold ${todo.completed ? 'text-decoration-line-through text-muted' : ''}`}>
                 {todo.title}
-              </h3>
-              {todo.description && (
-                <p className="mt-1 text-sm text-gray-600">{todo.description}</p>
-              )}
+              </h6>
+              <span className={`badge rounded-pill px-2 py-0 ${todo.completed ? 'bg-success bg-opacity-10 text-success' : 'bg-warning bg-opacity-10 text-warning'}`}>
+                {todo.completed ? 'Completed' : 'Pending'}
+              </span>
             </div>
-            <div className="ml-4 flex-shrink-0 flex space-x-2">
-              <button
-                onClick={() => handleToggleComplete(todo._id, todo.completed)}
-                disabled={loading}
-                className={`px-2 py-1 text-xs rounded ${
-                  todo.completed
-                    ? 'bg-yellow-100 text-yellow-800 hover:bg-yellow-200'
-                    : 'bg-green-100 text-green-800 hover:bg-green-200'
-                } ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
-              >
-                {todo.completed ? 'Mark Incomplete' : 'Mark Complete'}
-              </button>
-              <button
-                onClick={() => handleDelete(todo._id)}
-                disabled={loading}
-                className={`px-2 py-1 text-xs bg-red-100 text-red-800 rounded hover:bg-red-200 ${
-                  loading ? 'opacity-50 cursor-not-allowed' : ''
-                }`}
-              >
-                Delete
-              </button>
-            </div>
+          </div>
+          <div className="d-flex gap-1">
+            <button
+              className={`btn btn-sm d-flex align-items-center gap-2 px-3 py-1 text-white ${
+                todo.completed 
+                  ? 'btn-danger' 
+                  : 'btn-primary'
+              }`}
+              onClick={() => handleToggleComplete(todo._id, todo.completed)}
+              disabled={loading}
+              style={{ 
+                minWidth: '150px',
+                boxShadow: '0 1px 2px rgba(0,0,0,0.1)',
+                transition: 'all 0.2s ease',
+                border: 'none'
+              }}
+              onMouseOver={(e) => {
+                e.currentTarget.style.transform = 'translateY(-1px)';
+                e.currentTarget.style.boxShadow = '0 2px 4px rgba(0,0,0,0.15)';
+              }}
+              onMouseOut={(e) => {
+                e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.boxShadow = '0 1px 2px rgba(0,0,0,0.1)';
+              }}
+            >
+              <i className={`bi ${todo.completed ? 'bi-x-circle' : 'bi-check-circle'} fs-6`}></i>
+              {todo.completed ? 'Mark Incomplete' : 'Mark Complete'}
+            </button>
+            <button
+              className="btn btn-sm btn-outline-primary d-flex align-items-center gap-2 px-3 py-1"
+              onClick={() => handleDelete(todo._id)}
+              disabled={loading}
+              style={{ 
+                minWidth: '90px',
+                boxShadow: '0 1px 2px rgba(0,0,0,0.1)',
+                transition: 'all 0.2s ease'
+              }}
+              onMouseOver={(e) => {
+                e.currentTarget.style.transform = 'translateY(-1px)';
+                e.currentTarget.style.boxShadow = '0 2px 4px rgba(0,0,0,0.15)';
+              }}
+              onMouseOut={(e) => {
+                e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.boxShadow = '0 1px 2px rgba(0,0,0,0.1)';
+              }}
+            >
+              <i className="bi bi-trash fs-6"></i>
+              Delete
+            </button>
           </div>
         </div>
       ))}

@@ -1,0 +1,813 @@
+{
+	"info": {
+		"_postman_id": "b2c3d4e5-f6a7-8901-bcde-f12345678901",
+		"name": "User & Role Management",
+		"description": "API collection for User and Role management in MERN Task Manager",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Users",
+			"item": [
+				{
+					"name": "Get All Users",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/users",
+							"host": ["{{base_url}}"],
+							"path": ["users"]
+						},
+						"description": "Get all users with their roles"
+					},
+					"response": [
+						{
+							"name": "Success Response",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/users",
+									"host": ["{{base_url}}"],
+									"path": ["users"]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								}
+							],
+							"body": [
+								{
+									"_id": "user_id_1",
+									"name": "John Doe",
+									"username": "johndoe",
+									"email": "john@example.com",
+									"mobile": "1234567890",
+									"address": "123 Main St",
+									"profile_pic": "profile1.jpg",
+									"role": {
+										"_id": "role_id_1",
+										"name": "admin",
+										"description": "Administrator role"
+									},
+									"isActive": true,
+									"createdAt": "2024-03-20T10:00:00.000Z",
+									"updatedAt": "2024-03-20T10:00:00.000Z"
+								}
+							]
+						}
+					]
+				},
+				{
+					"name": "Get User by ID",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/users/:id",
+							"host": ["{{base_url}}"],
+							"path": ["users", ":id"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "user_id_here"
+								}
+							]
+						},
+						"description": "Get user details by ID"
+					},
+					"response": [
+						{
+							"name": "Success Response",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/users/user_id_here",
+									"host": ["{{base_url}}"],
+									"path": ["users", "user_id_here"]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								}
+							],
+							"body": {
+								"_id": "user_id_here",
+								"name": "John Doe",
+								"username": "johndoe",
+								"email": "john@example.com",
+								"mobile": "1234567890",
+								"address": "123 Main St",
+								"profile_pic": "profile1.jpg",
+								"role": {
+									"_id": "role_id_1",
+									"name": "admin",
+									"description": "Administrator role"
+								},
+								"isActive": true,
+								"createdAt": "2024-03-20T10:00:00.000Z",
+								"updatedAt": "2024-03-20T10:00:00.000Z"
+							}
+						}
+					]
+				},
+				{
+					"name": "Create User",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "name",
+									"value": "Jane Doe",
+									"type": "text"
+								},
+								{
+									"key": "username",
+									"value": "janedoe",
+									"type": "text"
+								},
+								{
+									"key": "email",
+									"value": "jane@example.com",
+									"type": "text"
+								},
+								{
+									"key": "password",
+									"value": "password123",
+									"type": "text"
+								},
+								{
+									"key": "roleId",
+									"value": "role_id_here",
+									"type": "text"
+								},
+								{
+									"key": "mobile",
+									"value": "9876543210",
+									"type": "text"
+								},
+								{
+									"key": "address",
+									"value": "456 Oak St",
+									"type": "text"
+								},
+								{
+									"key": "profile_pic",
+									"type": "file",
+									"src": "/path/to/image.jpg"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/users",
+							"host": ["{{base_url}}"],
+							"path": ["users"]
+						},
+						"description": "Create a new user"
+					},
+					"response": [
+						{
+							"name": "Success Response",
+							"originalRequest": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "formdata",
+									"formdata": []
+								},
+								"url": {
+									"raw": "{{base_url}}/users",
+									"host": ["{{base_url}}"],
+									"path": ["users"]
+								}
+							},
+							"status": "Created",
+							"code": 201,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								}
+							],
+							"body": {
+								"_id": "new_user_id",
+								"name": "Jane Doe",
+								"username": "janedoe",
+								"email": "jane@example.com",
+								"mobile": "9876543210",
+								"address": "456 Oak St",
+								"profile_pic": "profile2.jpg",
+								"role": {
+									"_id": "role_id_here",
+									"name": "user",
+									"description": "Regular user role"
+								},
+								"isActive": true,
+								"createdAt": "2024-03-20T10:00:00.000Z",
+								"updatedAt": "2024-03-20T10:00:00.000Z"
+							}
+						}
+					]
+				},
+				{
+					"name": "Update User",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "name",
+									"value": "Jane Smith",
+									"type": "text"
+								},
+								{
+									"key": "email",
+									"value": "jane.smith@example.com",
+									"type": "text"
+								},
+								{
+									"key": "roleId",
+									"value": "role_id_here",
+									"type": "text"
+								},
+								{
+									"key": "username",
+									"value": "janesmith",
+									"type": "text"
+								},
+								{
+									"key": "mobile",
+									"value": "9876543210",
+									"type": "text"
+								},
+								{
+									"key": "address",
+									"value": "789 Pine St",
+									"type": "text"
+								},
+								{
+									"key": "isActive",
+									"value": "true",
+									"type": "text"
+								},
+								{
+									"key": "profile_pic",
+									"type": "file",
+									"src": "/path/to/image.jpg"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/users/:id",
+							"host": ["{{base_url}}"],
+							"path": ["users", ":id"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "user_id_here"
+								}
+							]
+						},
+						"description": "Update user details"
+					},
+					"response": [
+						{
+							"name": "Success Response",
+							"originalRequest": {
+								"method": "PUT",
+								"header": [],
+								"body": {
+									"mode": "formdata",
+									"formdata": []
+								},
+								"url": {
+									"raw": "{{base_url}}/users/user_id_here",
+									"host": ["{{base_url}}"],
+									"path": ["users", "user_id_here"]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								}
+							],
+							"body": {
+								"_id": "user_id_here",
+								"name": "Jane Smith",
+								"username": "janesmith",
+								"email": "jane.smith@example.com",
+								"mobile": "9876543210",
+								"address": "789 Pine St",
+								"profile_pic": "profile3.jpg",
+								"role": {
+									"_id": "role_id_here",
+									"name": "user",
+									"description": "Regular user role"
+								},
+								"isActive": true,
+								"updatedAt": "2024-03-20T10:00:00.000Z"
+							}
+						}
+					]
+				},
+				{
+					"name": "Delete User",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/users/:id",
+							"host": ["{{base_url}}"],
+							"path": ["users", ":id"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "user_id_here"
+								}
+							]
+						},
+						"description": "Delete a user"
+					},
+					"response": [
+						{
+							"name": "Success Response",
+							"originalRequest": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/users/user_id_here",
+									"host": ["{{base_url}}"],
+									"path": ["users", "user_id_here"]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								}
+							],
+							"body": {
+								"message": "User deleted successfully"
+							}
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "Roles",
+			"item": [
+				{
+					"name": "Get All Roles",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/roles",
+							"host": ["{{base_url}}"],
+							"path": ["roles"]
+						},
+						"description": "Get all roles"
+					},
+					"response": [
+						{
+							"name": "Success Response",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/roles",
+									"host": ["{{base_url}}"],
+									"path": ["roles"]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								}
+							],
+							"body": [
+								{
+									"_id": "role_id_1",
+									"name": "admin",
+									"description": "Administrator role",
+									"permissions": [
+										{
+											"resource": "users",
+											"actions": ["create", "read", "update", "delete"]
+										},
+										{
+											"resource": "roles",
+											"actions": ["create", "read", "update", "delete"]
+										}
+									],
+									"isActive": true,
+									"createdAt": "2024-03-20T10:00:00.000Z",
+									"updatedAt": "2024-03-20T10:00:00.000Z"
+								}
+							]
+						}
+					]
+				},
+				{
+					"name": "Get Role by ID",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/roles/:id",
+							"host": ["{{base_url}}"],
+							"path": ["roles", ":id"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "role_id_here"
+								}
+							]
+						},
+						"description": "Get role details by ID"
+					},
+					"response": [
+						{
+							"name": "Success Response",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/roles/role_id_here",
+									"host": ["{{base_url}}"],
+									"path": ["roles", "role_id_here"]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								}
+							],
+							"body": {
+								"_id": "role_id_here",
+								"name": "admin",
+								"description": "Administrator role",
+								"permissions": [
+									{
+										"resource": "users",
+										"actions": ["create", "read", "update", "delete"]
+									},
+									{
+										"resource": "roles",
+										"actions": ["create", "read", "update", "delete"]
+									}
+								],
+								"isActive": true,
+								"createdAt": "2024-03-20T10:00:00.000Z",
+								"updatedAt": "2024-03-20T10:00:00.000Z"
+							}
+						}
+					]
+				},
+				{
+					"name": "Create Role",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"editor\",\n    \"description\": \"Content editor role\",\n    \"permissions\": [\n        {\n            \"resource\": \"content\",\n            \"actions\": [\"create\", \"read\", \"update\"]\n        },\n        {\n            \"resource\": \"comments\",\n            \"actions\": [\"create\", \"read\", \"update\", \"delete\"]\n        }\n    ]\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/roles",
+							"host": ["{{base_url}}"],
+							"path": ["roles"]
+						},
+						"description": "Create a new role"
+					},
+					"response": [
+						{
+							"name": "Success Response",
+							"originalRequest": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{}"
+								},
+								"url": {
+									"raw": "{{base_url}}/roles",
+									"host": ["{{base_url}}"],
+									"path": ["roles"]
+								}
+							},
+							"status": "Created",
+							"code": 201,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								}
+							],
+							"body": {
+								"_id": "new_role_id",
+								"name": "editor",
+								"description": "Content editor role",
+								"permissions": [
+									{
+										"resource": "content",
+										"actions": ["create", "read", "update"]
+									},
+									{
+										"resource": "comments",
+										"actions": ["create", "read", "update", "delete"]
+									}
+								],
+								"isActive": true,
+								"createdAt": "2024-03-20T10:00:00.000Z",
+								"updatedAt": "2024-03-20T10:00:00.000Z"
+							}
+						}
+					]
+				},
+				{
+					"name": "Update Role",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"senior-editor\",\n    \"description\": \"Senior content editor role\",\n    \"permissions\": [\n        {\n            \"resource\": \"content\",\n            \"actions\": [\"create\", \"read\", \"update\", \"delete\"]\n        },\n        {\n            \"resource\": \"comments\",\n            \"actions\": [\"create\", \"read\", \"update\", \"delete\"]\n        },\n        {\n            \"resource\": \"users\",\n            \"actions\": [\"read\"]\n        }\n    ],\n    \"isActive\": true\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/roles/:id",
+							"host": ["{{base_url}}"],
+							"path": ["roles", ":id"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "role_id_here"
+								}
+							]
+						},
+						"description": "Update role details"
+					},
+					"response": [
+						{
+							"name": "Success Response",
+							"originalRequest": {
+								"method": "PUT",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{}"
+								},
+								"url": {
+									"raw": "{{base_url}}/roles/role_id_here",
+									"host": ["{{base_url}}"],
+									"path": ["roles", "role_id_here"]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								}
+							],
+							"body": {
+								"_id": "role_id_here",
+								"name": "senior-editor",
+								"description": "Senior content editor role",
+								"permissions": [
+									{
+										"resource": "content",
+										"actions": ["create", "read", "update", "delete"]
+									},
+									{
+										"resource": "comments",
+										"actions": ["create", "read", "update", "delete"]
+									},
+									{
+										"resource": "users",
+										"actions": ["read"]
+									}
+								],
+								"isActive": true,
+								"updatedAt": "2024-03-20T10:00:00.000Z"
+							}
+						}
+					]
+				},
+				{
+					"name": "Delete Role",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/roles/:id",
+							"host": ["{{base_url}}"],
+							"path": ["roles", ":id"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "role_id_here"
+								}
+							]
+						},
+						"description": "Delete a role"
+					},
+					"response": [
+						{
+							"name": "Success Response",
+							"originalRequest": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/roles/role_id_here",
+									"host": ["{{base_url}}"],
+									"path": ["roles", "role_id_here"]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								}
+							],
+							"body": {
+								"message": "Role deleted successfully"
+							}
+						}
+					]
+				},
+				{
+					"name": "Get Available Permissions",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/roles/permissions",
+							"host": ["{{base_url}}"],
+							"path": ["roles", "permissions"]
+						},
+						"description": "Get list of available permissions"
+					},
+					"response": [
+						{
+							"name": "Success Response",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/roles/permissions",
+									"host": ["{{base_url}}"],
+									"path": ["roles", "permissions"]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								}
+							],
+							"body": {
+								"resources": ["users", "roles", "todos", "dashboard"],
+								"actions": ["create", "read", "update", "delete"]
+							}
+						}
+					]
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [""]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [""]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:5000/api",
+			"type": "string"
+		},
+		{
+			"key": "token",
+			"value": "your_jwt_token_here",
+			"type": "string"
+		}
+	]
+} 

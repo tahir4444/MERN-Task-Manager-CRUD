@@ -1,10 +1,12 @@
 import mongoose from 'mongoose';
 import bcrypt from 'bcryptjs';
+import Role from './Role.js';
 
 const userSchema = new mongoose.Schema({
   name: {
     type: String,
-    required: true
+    required: true,
+    trim: true
   },
   username: {
     type: String,
@@ -44,10 +46,11 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: true
   },
-  roles: [{
+  role: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Role'
-  }],
+    ref: 'Role',
+    required: true
+  },
   isActive: {
     type: Boolean,
     default: true
@@ -58,31 +61,34 @@ const userSchema = new mongoose.Schema({
 
 // Hash password before saving
 userSchema.pre('save', async function(next) {
-  if (!this.isModified('password')) {
+  if (!this.isModified('password')) return next();
+  
+  try {
+    const salt = await bcrypt.genSalt(10);
+    this.password = await bcrypt.hash(this.password, salt);
     next();
+  } catch (error) {
+    next(error);
   }
-  const salt = await bcrypt.genSalt(10);
-  this.password = await bcrypt.hash(this.password, salt);
 });
 
 // Method to compare password
 userSchema.methods.comparePassword = async function(candidatePassword) {
-  return await bcrypt.compare(candidatePassword, this.password);
+  return bcrypt.compare(candidatePassword, this.password);
 };
 
 // Method to check if user has a specific role
-userSchema.methods.hasRole = function(roleName) {
-  return this.roles.some(role => role.name === roleName);
+userSchema.methods.hasRole = async function(roleName) {
+  await this.populate('role');
+  return this.role.name === roleName;
 };
 
 // Method to check if user has permission for a specific action on a resource
 userSchema.methods.hasPermission = async function(resource, action) {
-  const user = await this.populate('roles');
-  return user.roles.some(role => 
-    role.permissions.some(permission => 
-      permission.resource === resource && 
-      permission.actions.includes(action)
-    )
+  await this.populate('role');
+  return this.role.permissions.some(permission => 
+    permission.resource === resource && 
+    permission.actions.includes(action)
   );
 };
 

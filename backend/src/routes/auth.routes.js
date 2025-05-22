@@ -7,6 +7,7 @@ import {
   getMe,
   resetPassword,
   getProfilePic,
+  getProfile
 } from '../controllers/auth.controller.js';
 
 import upload from '../middlewares/upload.js';
@@ -16,7 +17,7 @@ import {
   handleValidationErrors,
   validateLoginInput,
 } from '../utils/validation.js';
-import { authenticate } from '../middlewares/auth.js'; // optional middleware
+import { protect } from '../middlewares/auth.js';
 //import { registerUser } from '../controllers/authController.js';
 const router = Router();
 
@@ -30,12 +31,16 @@ router.post(
 
 router.post('/login', validateLoginInput, handleValidationErrors, login);
 
-router.get('/me', authenticate, getMe);
+router.get('/me', protect, getMe);
+router.get('/profile', protect, getProfile);
 
-router.post('/logout', authenticate, logoutUser); // or remove `authenticate` if token not required
-router.get('/profile', authenticate, getMe);
-router.post('/reset-password', authenticate, resetPassword);
-router.get('/get-profile-pic', authenticate, getProfilePic);
+// router.get('/profile', authenticate, getProfile);
+
+router.post('/logout', protect, logoutUser); // or remove `authenticate` if token not required
+
+router.post('/reset-password', protect, resetPassword);
+router.get('/get-profile-pic', protect, getProfilePic);
+
 /*router.post('/verify-otp', verifyOtp);
 router.post('/update-profile', protect, updateProfile);
 router.post('/upload-profile-pic', protect, upload.single('profilePic'), uploadProfilePic);

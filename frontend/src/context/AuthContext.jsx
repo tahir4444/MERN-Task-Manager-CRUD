@@ -24,13 +24,18 @@ const AuthProvider = ({ children }) => {
   const fetchUser = async () => {
     try {
       const response = await authService.getMe();
-      setUser(response.user);
-      setIsAuthenticated(true);
+      if (response && response.user) {
+        setUser(response.user);
+        setIsAuthenticated(true);
+      } else {
+        throw new Error('Invalid user data received');
+      }
     } catch (error) {
       console.error('Error fetching user:', error);
       localStorage.removeItem('token');
       setUser(null);
       setIsAuthenticated(false);
+      navigate('/login');
     } finally {
       setLoading(false);
     }
@@ -39,11 +44,15 @@ const AuthProvider = ({ children }) => {
   const login = async (email, password) => {
     try {
       const response = await authService.login(email, password);
-      localStorage.setItem('token', response.token);
-      setUser(response.user);
-      setIsAuthenticated(true);
-      toast.success('Login successful');
-      navigate('/dashboard');
+      if (response && response.token) {
+        localStorage.setItem('token', response.token);
+        setUser(response.user);
+        setIsAuthenticated(true);
+        toast.success('Login successful');
+        navigate('/dashboard');
+      } else {
+        throw new Error('Invalid login response');
+      }
     } catch (error) {
       console.error('Login error:', error);
       toast.error(error.response?.data?.message || 'Login failed');
@@ -54,11 +63,15 @@ const AuthProvider = ({ children }) => {
   const register = async (userData) => {
     try {
       const response = await authService.register(userData);
-      localStorage.setItem('token', response.token);
-      setUser(response.user);
-      setIsAuthenticated(true);
-      toast.success('Registration successful');
-      navigate('/dashboard');
+      if (response && response.token) {
+        localStorage.setItem('token', response.token);
+        setUser(response.user);
+        setIsAuthenticated(true);
+        toast.success('Registration successful');
+        navigate('/dashboard');
+      } else {
+        throw new Error('Invalid registration response');
+      }
     } catch (error) {
       console.error('Registration error:', error);
       toast.error(error.response?.data?.message || 'Registration failed');
@@ -66,24 +79,30 @@ const AuthProvider = ({ children }) => {
     }
   };
 
-  const logout = () => {
-    localStorage.removeItem('token');
-    setUser(null);
-    setIsAuthenticated(false);
-    navigate('/login');
-    toast.success('Logged out successfully');
+  const logout = async () => {
+    try {
+      await authService.logout();
+    } catch (error) {
+      console.error('Logout error:', error);
+    } finally {
+      localStorage.removeItem('token');
+      setUser(null);
+      setIsAuthenticated(false);
+      navigate('/login');
+      toast.success('Logged out successfully');
+    }
   };
 
   const hasRole = (roleName) => {
-    return user?.roles?.includes(roleName);
+    return user?.role?.name === roleName;
   };
 
   const hasAnyRole = (roleNames) => {
-    return user?.roles?.some(role => roleNames.includes(role));
+    return roleNames.includes(user?.role?.name);
   };
 
   const hasAllRoles = (roleNames) => {
-    return user?.roles?.every(role => roleNames.includes(role));
+    return roleNames.includes(user?.role?.name);
   };
 
   if (loading) {

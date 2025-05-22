@@ -1,0 +1,71 @@
+import mongoose from 'mongoose';
+import dotenv from 'dotenv';
+import Role from '../models/Role.js';
+import User from '../models/User.js';
+
+dotenv.config();
+
+const createSuperAdmin = async () => {
+  try {
+    // Connect to MongoDB
+    await mongoose.connect(process.env.MONGODB_URI);
+    console.log('Connected to MongoDB');
+
+    // Create superadmin role if it doesn't exist
+    let superAdminRole = await Role.findOne({ name: 'superadmin' });
+    if (!superAdminRole) {
+      superAdminRole = await Role.create({
+        name: 'superadmin',
+        description: 'Super Administrator with full system access',
+        permissions: [
+          {
+            resource: 'todos',
+            actions: ['create', 'read', 'update', 'delete']
+          },
+          {
+            resource: 'users',
+            actions: ['create', 'read', 'update', 'delete']
+          },
+          {
+            resource: 'roles',
+            actions: ['create', 'read', 'update', 'delete']
+          },
+          {
+            resource: 'profile',
+            actions: ['read', 'update']
+          }
+        ]
+      });
+      console.log('Superadmin role created');
+    }
+
+    // Get the user's email from command line arguments
+    const userEmail = process.argv[2];
+    if (!userEmail) {
+      console.error('Please provide a user email as an argument');
+      process.exit(1);
+    }
+
+    // Find the user and update their role
+    const user = await User.findOne({ email: userEmail });
+    if (!user) {
+      console.error('User not found');
+      process.exit(1);
+    }
+
+    // Update user's role to superadmin
+    user.role = superAdminRole._id;
+    await user.save();
+    console.log(`User ${userEmail} has been assigned the superadmin role`);
+
+    // Close the connection
+    await mongoose.connection.close();
+    console.log('Database connection closed');
+  } catch (error) {
+    console.error('Error:', error);
+    process.exit(1);
+  }
+};
+
+// Run the script
+createSuperAdmin(); 

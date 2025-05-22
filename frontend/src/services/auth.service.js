@@ -1,21 +1,18 @@
-import axios from 'axios';
-import { API_BASE_URL } from '../config';
-
-// Create axios instance with default config
-const api = axios.create({
-  baseURL: API_BASE_URL,
-  headers: {
-    'Content-Type': 'application/json'
-  }
-});
+import axiosInstance from './axios';
 
 export const login = async (email, password) => {
   try {
-    const response = await api.post('/auth/login', {
+    const response = await axiosInstance.post('/auth/login', {
       email,
       password
     });
-    return response.data;
+    if (!response.data || !response.data.user || !response.data.user.token) {
+      throw new Error('Invalid login response');
+    }
+    return {
+      token: response.data.user.token,
+      user: response.data.user
+    };
   } catch (error) {
     console.error('Login error:', error);
     throw error;
@@ -24,7 +21,10 @@ export const login = async (email, password) => {
 
 export const register = async (userData) => {
   try {
-    const response = await api.post('/auth/register', userData);
+    const response = await axiosInstance.post('/auth/register', userData);
+    if (!response.data || !response.data.token) {
+      throw new Error('Invalid registration response');
+    }
     return response.data;
   } catch (error) {
     console.error('Registration error:', error);
@@ -34,12 +34,10 @@ export const register = async (userData) => {
 
 export const getMe = async () => {
   try {
-    const token = localStorage.getItem('token');
-    const response = await api.get('/auth/me', {
-      headers: {
-        Authorization: `Bearer ${token}`
-      }
-    });
+    const response = await axiosInstance.get('/auth/me');
+    if (!response.data || !response.data.user) {
+      throw new Error('Invalid user data received');
+    }
     return response.data;
   } catch (error) {
     console.error('Get me error:', error);
@@ -49,12 +47,7 @@ export const getMe = async () => {
 
 export const logout = async () => {
   try {
-    const token = localStorage.getItem('token');
-    await api.post('/auth/logout', {}, {
-      headers: {
-        Authorization: `Bearer ${token}`
-      }
-    });
+    await axiosInstance.post('/auth/logout');
   } catch (error) {
     console.error('Logout error:', error);
     throw error;
@@ -63,10 +56,13 @@ export const logout = async () => {
 
 export const resetPassword = async (token, newPassword) => {
   try {
-    const response = await api.post('/auth/reset-password', {
+    const response = await axiosInstance.post('/auth/reset-password', {
       token,
       newPassword
     });
+    if (!response.data) {
+      throw new Error('Invalid reset password response');
+    }
     return response.data;
   } catch (error) {
     console.error('Reset password error:', error);

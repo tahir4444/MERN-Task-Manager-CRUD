@@ -21,15 +21,37 @@ export const protect = async (req, res, next) => {
       }
 
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
-      req.user = await User.findById(decoded.id).select('-password');
+      req.user = await User.findById(decoded.id)
+        .select('-password')
+        .populate({
+          path: 'role',
+          select: 'name description permissions'
+        });
+      
+      if (!req.user) {
+        return res.status(401).json({ error: 'User not found' });
+      }
+
+      if (!req.user.role) {
+        console.error('User role not found:', {
+          userId: req.user._id,
+          email: req.user.email
+        });
+        return res.status(401).json({ error: 'User role not found' });
+      }
+
       next();
     } catch (error) {
+      console.error('Auth middleware error:', error);
       return res.status(401).json({ error: 'Not authorized, token failed' });
     }
   } else {
     res.status(401).json({ error: 'Not authorized, no token' });
   }
 };
+
+// Alias for protect middleware
+export const authenticate = protect;
 
 // Function to blacklist a token
 export const blacklistToken = async (req, token) => {
@@ -48,11 +70,8 @@ export const blacklistToken = async (req, token) => {
   }
 };
 
-// Aliases
-export const authenticate = protect;
-
 export const isAdmin = (req, res, next) => {
-  if (req.user && req.user.role === 'admin') {
+  if (req.user && req.user.role?.name === 'admin') {
     next();
   } else {
     res.status(403).json({ error: 'Not authorized as admin' });
@@ -60,26 +79,29 @@ export const isAdmin = (req, res, next) => {
 };
 
 export const isUser = (req, res, next) => {
-  if (req.user && req.user.role === 'user') {
+  if (req.user && req.user.role?.name === 'user') {
     next();
   } else {
     res.status(403).json({ error: 'Not authorized as user' });
   }
 };
+
 export const isModerator = (req, res, next) => {
-  if (req.user && req.user.role === 'moderator') {
+  if (req.user && req.user.role?.name === 'moderator') {
     next();
   } else {
     res.status(403).json({ error: 'Not authorized as moderator' });
   }
 };
+
 export const isSuperAdmin = (req, res, next) => {
-  if (req.user && req.user.role === 'superadmin') {
+  if (req.user && req.user.role?.name === 'superadmin') {
     next();
   } else {
     res.status(403).json({ error: 'Not authorized as superadmin' });
   }
 };
+
 export const isGuest = (req, res, next) => {
   if (!req.user) {
     next();
@@ -87,6 +109,7 @@ export const isGuest = (req, res, next) => {
     res.status(403).json({ error: 'Not authorized as guest' });
   }
 };
+
 /* 
 export const logoutUser = async (req, res) => {
   const token = req.headers.authorization.split(' ')[1];

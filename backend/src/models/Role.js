@@ -5,11 +5,11 @@ const roleSchema = new mongoose.Schema({
     type: String,
     required: true,
     unique: true,
-    trim: true,
-    index: true
+    trim: true
   },
   description: {
     type: String,
+    required: true,
     trim: true
   },
   permissions: [{
@@ -32,6 +32,4 @@ const roleSchema = new mongoose.Schema({
   timestamps: true
 });
 
-const Role = mongoose.model('Role', roleSchema);
-
-export default Role; 
+export default mongoose.model('Role', roleSchema); 

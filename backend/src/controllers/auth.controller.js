@@ -42,7 +42,7 @@ export const register = async (req, res) => {
       mobile,
       address,
       profile_pic,
-      roles: [userRole._id],
+      role: userRole._id,
     });
 
     await user.save();
@@ -65,7 +65,7 @@ export const register = async (req, res) => {
         profile_pic: user.profile_pic
           ? `${req.protocol}://${req.get('host')}/uploads/${user.profile_pic}`
           : null,
-        roles: [userRole.name],
+        role: userRole.name,
       },
     });
   } catch (error) {
@@ -79,8 +79,12 @@ export const login = async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    // Find user
-    const user = await User.findOne({ email }).populate('roles');
+    // Find user and populate role
+    const user = await User.findOne({ email }).populate({
+      path: 'role',
+      select: 'name description permissions'
+    });
+
     if (!user) {
       return res.status(401).json({ message: 'Invalid credentials' });
     }
@@ -96,9 +100,18 @@ export const login = async (req, res) => {
       expiresIn: '1d',
     });
 
+    // Ensure role is populated before accessing its properties
+    if (!user.role) {
+      console.error('User role not found for user:', {
+        userId: user._id,
+        email: user.email,
+        roleId: user.role
+      });
+      return res.status(500).json({ message: 'User role not found' });
+    }
+
     res.json({
       message: 'Login successful',
-      token,
       user: {
         id: user._id,
         name: user.name,
@@ -109,12 +122,16 @@ export const login = async (req, res) => {
         profile_pic: user.profile_pic
           ? `${req.protocol}://${req.get('host')}/uploads/${user.profile_pic}`
           : null,
-        roles: user.roles.map((role) => role.name),
-      },
+        role: user.role.name,
+        token
+      }
     });
   } catch (error) {
     console.error('Login error:', error);
-    res.status(500).json({ message: 'Error logging in' });
+    res.status(500).json({ 
+      message: 'Error logging in',
+      error: error.message 
+    });
   }
 };
 
@@ -123,7 +140,7 @@ export const getProfile = async (req, res) => {
   try {
     const user = await User.findById(req.user.id)
       .select('-password')
-      .populate('roles');
+      .populate('role');
 
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
@@ -140,7 +157,7 @@ export const getProfile = async (req, res) => {
         profile_pic: user.profile_pic
           ? `${req.protocol}://${req.get('host')}/uploads/${user.profile_pic}`
           : null,
-        roles: user.roles.map((role) => role.name),
+        role: user.role.name,
       },
     });
   } catch (error) {
@@ -153,7 +170,7 @@ export const getMe = async (req, res) => {
   try {
     const user = await User.findById(req.user.id)
       .select('-password')
-      .populate('roles');
+      .populate('role');
 
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
@@ -170,7 +187,7 @@ export const getMe = async (req, res) => {
         profile_pic: user.profile_pic
           ? `${req.protocol}://${req.get('host')}/uploads/${user.profile_pic}`
           : null,
-        roles: user.roles.map((role) => role.name),
+        role: user.role.name,
       },
     });
   } catch (error) {
@@ -182,7 +199,6 @@ export const getMe = async (req, res) => {
 export const getProfilePic = async (req, res) => {
   try {
     const user = await User.findById(req.user.id).select('-password');
-    //res.json(user);
 
     res.json({
       user: {
@@ -191,14 +207,6 @@ export const getProfilePic = async (req, res) => {
           : null,
       },
     });
-    const { profile_pic } = user;
-    const filePath = path.join(__dirname, 'uploads', profile_pic);
-
-    if (!fs.existsSync(filePath)) {
-      return res.status(404).json({ error: 'File not found' });
-    }
-
-    res.sendFile(filePath);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -226,9 +234,6 @@ export const resetPassword = async (req, res) => {
     // Update password
     user.password = newPassword;
     await user.save();
-
-    // Blacklist the reset token
-    //await blacklistToken(req, token);
 
     res.status(200).json({ message: 'Password reset successful' });
   } catch (error) {

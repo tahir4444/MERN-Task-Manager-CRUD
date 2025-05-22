@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import authRoutes from './routes/auth.routes.js';
 import todosRoutes from './routes/todos.routes.js';
+import roleRoutes from './routes/role.routes.js';
 import { handleValidationErrors } from './utils/validation.js';
 
 const app = express();
@@ -11,6 +12,7 @@ app.use(express.json());
 
 app.use('/api/auth', authRoutes);
 app.use('/api/todos', todosRoutes);
+app.use('/api/roles', roleRoutes);
 app.use('/uploads', express.static('uploads')); // 👈 Serve files from uploads dir
 /*app.use('/uploads', express.static('uploads')); // 👈 Serve files from uploads dir
  import BlacklistedToken from './models/BlacklistedToken.js';

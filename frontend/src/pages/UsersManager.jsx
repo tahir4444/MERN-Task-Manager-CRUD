@@ -29,6 +29,7 @@ const UsersManager = () => {
   const [roles, setRoles] = useState([]);
   const [openDialog, setOpenDialog] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -36,6 +37,7 @@ const UsersManager = () => {
     roleId: '',
     isActive: true
   });
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     if (!user) {
@@ -56,17 +58,23 @@ const UsersManager = () => {
 
   const fetchUsers = async () => {
     try {
-      const response = await axiosInstance.get('/users');
+      setLoading(true);
+      const response = await axiosInstance.get('/accounts/users');
+      console.log('Users response:', response.data);
       setUsers(response.data);
     } catch (error) {
       console.error('Error fetching users:', error);
-      toast.error('Failed to fetch users');
+      setError(error.response?.data?.message || 'Failed to fetch users');
+      toast.error(error.response?.data?.message || 'Failed to fetch users');
+    } finally {
+      setLoading(false);
     }
   };
 
   const fetchRoles = async () => {
     try {
       const response = await axiosInstance.get('/roles');
+      console.log('Roles response:', response.data);
       setRoles(response.data);
     } catch (error) {
       console.error('Error fetching roles:', error);
@@ -81,7 +89,7 @@ const UsersManager = () => {
         name: user.name,
         email: user.email,
         password: '',
-        roleId: user.role._id,
+        roleId: user.role?._id || user.role,
         isActive: user.isActive
       });
     } else {
@@ -117,7 +125,8 @@ const UsersManager = () => {
     }));
   };
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (e) => {
+    e.preventDefault();
     if (!formData.name.trim() || !formData.email.trim() || !formData.roleId) {
       toast.error('Please fill in all required fields');
       return;
@@ -129,38 +138,58 @@ const UsersManager = () => {
     }
 
     try {
+      setLoading(true);
       const submitData = { ...formData };
       if (editingUser && !submitData.password) {
         delete submitData.password;
       }
 
       if (editingUser) {
-        await axiosInstance.put(`/users/${editingUser._id}`, submitData);
+        await axiosInstance.put(`/accounts/users/${editingUser._id}`, submitData);
         toast.success('User updated successfully');
       } else {
-        await axiosInstance.post('/users', submitData);
+        await axiosInstance.post('/accounts/users', submitData);
         toast.success('User created successfully');
       }
+      setOpenDialog(false);
       fetchUsers();
-      handleCloseDialog();
     } catch (error) {
       console.error('Error saving user:', error);
+      setError(error.response?.data?.message || 'Failed to save user');
       toast.error(error.response?.data?.message || 'Failed to save user');
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleDelete = async (userId) => {
     if (window.confirm('Are you sure you want to delete this user?')) {
       try {
-        await axiosInstance.delete(`/users/${userId}`);
+        setLoading(true);
+        await axiosInstance.delete(`/accounts/users/${userId}`);
         toast.success('User deleted successfully');
         fetchUsers();
       } catch (error) {
         console.error('Error deleting user:', error);
-        toast.error('Failed to delete user');
+        setError(error.response?.data?.message || 'Failed to delete user');
+        toast.error(error.response?.data?.message || 'Failed to delete user');
+      } finally {
+        setLoading(false);
       }
     }
   };
+
+  if (loading) {
+    return (
+      <div className="container py-5">
+        <div className="d-flex justify-content-center">
+          <div className="spinner-border text-primary" role="status">
+            <span className="visually-hidden">Loading...</span>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="container py-5">
@@ -175,18 +204,16 @@ const UsersManager = () => {
           <div className="card bg-light text-dark border-dark">
             <div className="card-header d-flex justify-content-between align-items-center">
               <h5 className="mb-0">Users List</h5>
-              {users.length > 0 && (
-                <button
-                  className="btn btn-primary"
-                  onClick={() => setOpenDialog(true)}
-                >
-                  Add User
-                </button>
-              )}
+              <button
+                className="btn btn-primary"
+                onClick={() => handleOpenDialog()}
+              >
+                Add User
+              </button>
             </div>
             <div className="card-body">
               {users.length === 0 ? (
-                <EmptyState onAddClick={() => setOpenDialog(true)} />
+                <EmptyState onAddClick={() => handleOpenDialog()} />
               ) : (
                 <div className="table-responsive">
                   <table className="table table-hover">
@@ -205,7 +232,7 @@ const UsersManager = () => {
                         <tr key={user._id}>
                           <td>{user.name}</td>
                           <td>{user.email}</td>
-                          <td>{user.role.name}</td>
+                          <td>{typeof user.role === 'object' ? user.role.name : user.role}</td>
                           <td>
                             <span className={`badge ${user.isActive ? 'bg-success' : 'bg-danger'}`}>
                               {user.isActive ? 'Active' : 'Inactive'}
@@ -241,7 +268,7 @@ const UsersManager = () => {
 
       {/* Edit/Add User Modal */}
       {openDialog && (
-        <div className="modal fade show" style={{ display: 'block' }} tabIndex="-1">
+        <div className="modal fade show" style={{ display: 'block', backgroundColor: 'rgba(0,0,0,0.5)' }} tabIndex="-1">
           <div className="modal-dialog">
             <div className="modal-content">
               <div className="modal-header">

@@ -26,7 +26,10 @@ axiosInstance.interceptors.response.use(
   (response) => response,
   (error) => {
     // Only handle 401 errors for non-auth endpoints to prevent infinite redirects
-    if (error.response?.status === 401 && !error.config.url.includes('/auth/')) {
+    if (
+      error.response?.status === 401 &&
+      !error.config.url.includes('/auth/')
+    ) {
       localStorage.removeItem('token');
       // Use window.location.replace instead of href to prevent adding to history
       window.location.replace('/login');
@@ -35,4 +38,4 @@ axiosInstance.interceptors.response.use(
   }
 );
 
-export default axiosInstance; 
+export default axiosInstance;

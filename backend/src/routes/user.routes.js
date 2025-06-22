@@ -24,10 +24,10 @@ const isAdminOrSuperAdmin = (req, res, next) => {
 };
 
 // User management routes - protected by admin/superadmin middleware
-router.get('/', isAdminOrSuperAdmin, getUsers);
-router.get('/:id', isAdminOrSuperAdmin, getUserById);
-router.post('/', isAdminOrSuperAdmin, upload.single('profile_pic'), createUser);
-router.put('/:id', isAdminOrSuperAdmin, upload.single('profile_pic'), updateUser);
-router.delete('/:id', isAdminOrSuperAdmin, deleteUser);
+router.get('/users', isAdminOrSuperAdmin, getUsers);
+router.get('/users/:id', isAdminOrSuperAdmin, getUserById);
+router.post('/users', isAdminOrSuperAdmin, upload.single('profile_pic'), createUser);
+router.put('/users/:id', isAdminOrSuperAdmin, upload.single('profile_pic'), updateUser);
+router.delete('/users/:id', isAdminOrSuperAdmin, deleteUser);
 
 export default router; 
